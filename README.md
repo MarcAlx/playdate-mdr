@@ -6,7 +6,10 @@ Macrodata Refinement terminal for play.date
 
 @see https://severance.wiki/macrodata_refinement
 
-_n.b please note that this is a current work in progress with no ETA or exact gameplay planned._
+_n.b - please note that this is a current work in progress with no ETA, no gameplay planned and code all over the place._
+
+_n.b 2 - further testing on device may be required_
+
 ## Getting started
 
 ### Pre-requisite
