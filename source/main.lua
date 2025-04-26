@@ -144,9 +144,12 @@ function render()
         end
     end   
     
-    gfx.clear(gfx.kColorBlack)
-
+    --playdate.drawFPS(190,0)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillRect(GRID_AREA)
+    
     --progress
+    gfx.setColor(gfx.kColorWhite)
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
     gfx.drawText(progress .. "% Complete", 30, 11)
     gfx.drawRect(PROGRESS_BAR)
@@ -229,6 +232,7 @@ function startup()
 
     --delay update to let startup logo display
     tmr.new(2000, function() 
+        gfx.clear(gfx.kColorBlack)
         tmr.keyRepeatTimerWithDelay(1000,500,render)
         tmr.keyRepeatTimerWithDelay(0,150,handleInput)
     end)
