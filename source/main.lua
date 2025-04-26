@@ -29,7 +29,11 @@ settingsManager = nil
 refreshTimer = nil
 
 WIDTH = 25
-HEIGHT = 14
+HEIGHT = 10
+PADDING = 4
+HEADER_HEIGHT = 20
+GRID_HEIGHT = 190
+FOLDER_HEIGHT = 215
 
 numbers= {}
 function initNumbers()
@@ -49,7 +53,7 @@ function drawGrid()
     for i = 1, WIDTH do
         for j = 1, HEIGHT do
             gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-            gfx.drawText(numbers[i][j].value, numbers[i][j].curX, numbers[i][j].curY)
+            gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING, numbers[i][j].curY + HEADER_HEIGHT)
         end
     end
 end
@@ -73,15 +77,32 @@ function startup()
     --gfx.drawText("hello", 0, 0)
 
     timer = tmr.keyRepeatTimerWithDelay(0,600,function ()
-        gfx.clear(gfx.kColorBlack)
         for i = 1, WIDTH do
             for j = 1, HEIGHT do
                 numbers[i][j]:update()
             end
-        end      
-        drawGrid()
+        end   
+        
+        gfx.clear(gfx.kColorBlack)
         gfx.setColor(gfx.kColorWhite)
-        gfx.drawRoundRect(4,4,playdate.display.getWidth()-8,playdate.display.getHeight()-8,5)
+        --header
+        gfx.drawLine(PADDING,HEADER_HEIGHT,playdate.display.getWidth()-(2*PADDING)+2,HEADER_HEIGHT)
+        
+        --grid
+        drawGrid()
+        
+        --start folder
+        gfx.drawLine(PADDING,GRID_HEIGHT,playdate.display.getWidth()-(2*PADDING)+2,GRID_HEIGHT)
+        gfx.setColor(gfx.kColorWhite)
+
+        --start coord
+        --remove top round
+        gfx.fillRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-(3*PADDING))
+        gfx.fillRoundRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-PADDING, 5)
+        
+        --scrren corner
+        gfx.drawRoundRect(PADDING,PADDING,playdate.display.getWidth()-8,playdate.display.getHeight()-(2*PADDING),5)
+        
     end)
 end
 
