@@ -201,13 +201,13 @@ end
 --look for input in order to adjust offset
 function handleInput()
     if playdate.buttonIsPressed( playdate.kButtonUp ) then
-        offsetY-=1
-    elseif playdate.buttonIsPressed( playdate.kButtonRight ) then
-        offsetX+=1
-    elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
         offsetY+=1
-    elseif playdate.buttonIsPressed( playdate.kButtonLeft ) then
+    elseif playdate.buttonIsPressed( playdate.kButtonRight ) then
         offsetX-=1
+    elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
+        offsetY-=1
+    elseif playdate.buttonIsPressed( playdate.kButtonLeft ) then
+        offsetX+=1
     end
 end
 
