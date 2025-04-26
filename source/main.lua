@@ -222,13 +222,8 @@ function startup()
     math.randomseed(playdate.getSecondsSinceEpoch())
 
     initNumbers()
-
-    --init stateManager
-    --stateManager = StateManager()
-    
     
     gfx.setFont(GameAssets.NORMAL_FONT)
-    --gfx.drawText("hello", 0, 0)
 
     GameAssets.LOGO:draw(0,0)
 
