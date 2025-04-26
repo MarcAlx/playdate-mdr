@@ -28,6 +28,7 @@ PADDING = 4
 HEADER_HEIGHT = 27
 GRID_HEIGHT = 180
 FOLDER_HEIGHT = 219
+OFFSET_STEP = 2
 
 GRID_AREA = playdate.geometry.rect.new(15, HEADER_HEIGHT+2, 372, 150)
 PROGRESS_BAR = playdate.geometry.rect.new(12, 9, 300, 14)
@@ -201,13 +202,13 @@ end
 --look for input in order to adjust offset
 function handleInput()
     if playdate.buttonIsPressed( playdate.kButtonUp ) then
-        offsetY+=1
+        offsetY+=OFFSET_STEP
     elseif playdate.buttonIsPressed( playdate.kButtonRight ) then
-        offsetX-=1
+        offsetX-=OFFSET_STEP
     elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
-        offsetY-=1
+        offsetY-=OFFSET_STEP
     elseif playdate.buttonIsPressed( playdate.kButtonLeft ) then
-        offsetX+=1
+        offsetX+=OFFSET_STEP
     end
 end
 
