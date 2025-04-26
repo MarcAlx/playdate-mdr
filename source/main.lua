@@ -36,10 +36,9 @@ function initNumbers()
     for i = 1, WIDTH do
         numbers[i] = {}
         for j = 1, HEIGHT do
-            local dir = math.random(0, 1)
-            if(dir == 0) then 
+            if(math.fmod(i,2) == 0) then 
                 numbers[i][j] = Number(math.random(0, 9), i*15, j*15, Direction.HORIZONTAL)
-            elseif(dir == 1) then 
+            else
                 numbers[i][j] = Number(math.random(0, 9), i*15, j*15, Direction.VERTICAL)
             end
         end
@@ -73,7 +72,7 @@ function startup()
     gfx.setFont(GameAssets.NORMAL_FONT)
     --gfx.drawText("hello", 0, 0)
 
-    timer = tmr.keyRepeatTimerWithDelay(0,300,function ()
+    timer = tmr.keyRepeatTimerWithDelay(0,600,function ()
         gfx.clear(gfx.kColorBlack)
         for i = 1, WIDTH do
             for j = 1, HEIGHT do
@@ -81,6 +80,8 @@ function startup()
             end
         end      
         drawGrid()
+        gfx.setColor(gfx.kColorWhite)
+        gfx.drawRoundRect(4,4,playdate.display.getWidth()-8,playdate.display.getHeight()-8,5)
     end)
 end
 

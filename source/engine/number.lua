@@ -27,6 +27,12 @@ function Number:init(value,x,y, direction)
     self.curX=x
     self.curY=y
     self.direction=direction
+
+    if(self.direction == Direction.HORIZONTAL) then
+        self.curX = self.curX + math.random(-2,2)
+    else
+        self.curY = self.curY + math.random(-2,2)
+    end
 end
 
 function Number:update()
