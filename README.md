@@ -2,8 +2,11 @@
 
 Macrodata Refinement terminal for play.date
 
+![](./gif/demo.gif)
+
 @see https://severance.wiki/macrodata_refinement
 
+_n.b please note that this is a current work in progress with no ETA or exact gameplay planned._
 ## Getting started
 
 ### Pre-requisite
