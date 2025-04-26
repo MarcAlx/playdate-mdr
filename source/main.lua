@@ -64,7 +64,7 @@ function createScaryNumbers(matrix, x1, y1, x2, y2, density)
     for y = y1, y2 do
         for x = x1, x2 do
             if math.random() < density then
-                matrix[y][x].scary = true
+                matrix[x][y].scary = true
             end
         end
     end
@@ -73,7 +73,7 @@ function createScaryNumbers(matrix, x1, y1, x2, y2, density)
     for y = y1, y2 do
         for x = x1, x2 do
             --number is not scary
-            if matrix[y][x].scary == false then
+            if matrix[x][y].scary == false then
                 local finalScary = false
                 local count = 0
                 --look neighbor
@@ -87,7 +87,7 @@ function createScaryNumbers(matrix, x1, y1, x2, y2, density)
 
                 -- more than 4 scary neighbor -> should be scary
                 if(count > 4) then 
-                    matrix[y][x].scary = true
+                    matrix[x][y].scary = true
                 end
             end
         end
