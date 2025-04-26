@@ -20,12 +20,6 @@ local gfx  <const> = playdate.graphics
 local disp  <const> = playdate.display
 local tmr  <const> = playdate.timer
 
---to handle game state
-local stateManager = nil
-
---settings manager for general access
-settingsManager = nil
-
 refreshTimer = nil
 
 WIDTH = 250
@@ -107,7 +101,10 @@ function render()
     gfx.setColor(gfx.kColorWhite)
     --header
     gfx.drawLine(PADDING,HEADER_HEIGHT,playdate.display.getWidth()-(2*PADDING)+2,HEADER_HEIGHT)
-    
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    GameAssets.LOGO_SMALL:draw(PROGRESS_BAR.width+PROGRESS_BAR.x+45, 6)
+    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+
     --grid
     drawGrid(offsetX, offsetY)
     
@@ -179,8 +176,13 @@ function startup()
     gfx.setFont(GameAssets.NORMAL_FONT)
     --gfx.drawText("hello", 0, 0)
 
-    timer = tmr.keyRepeatTimerWithDelay(0,600,render)
-    timer = tmr.keyRepeatTimerWithDelay(0,200,handleInput)
+    GameAssets.LOGO:draw(0,0)
+
+    --delay update to let startup logo display
+    tmr.new(2000, function() 
+        tmr.keyRepeatTimerWithDelay(1000,1000,render)
+        tmr.keyRepeatTimerWithDelay(0,200,handleInput)
+    end)
 end
 
 --startup call
