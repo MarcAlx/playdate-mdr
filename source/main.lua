@@ -234,7 +234,7 @@ function startup()
     --delay update to let startup logo display
     tmr.new(2000, function() 
         tmr.keyRepeatTimerWithDelay(1000,1000,render)
-        tmr.keyRepeatTimerWithDelay(0,200,handleInput)
+        tmr.keyRepeatTimerWithDelay(0,150,handleInput)
     end)
 end
 
