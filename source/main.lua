@@ -56,7 +56,45 @@ frolder3Progress = 0
 frolder4Progress = 0
 frolder5Progress = 0
 
+-- create scary pattern in given number matrix
+function createScaryNumbers(matrix, x1, y1, x2, y2, density)
+    density = density or 0.7
+    --identify scary
+    for y = y1, y2 do
+        for x = x1, x2 do
+            if math.random() < density then
+                matrix[y][x].scary = true
+            end
+        end
+    end
+
+    --prevent hole
+    for y = y1, y2 do
+        for x = x1, x2 do
+            --number is not scary
+            if matrix[y][x].scary == false then
+                local finalScary = false
+                local count = 0
+                --look neighbor
+                for a = x-1, x+1 do
+                    for b = y-1, y+1 do
+                        if(matrix[a][b].scary) then
+                            count = count + 1
+                        end
+                    end
+                end
+
+                -- more than 4 scary neighbor -> should be scary
+                if(count > 4) then 
+                    matrix[y][x].scary = true
+                end
+            end
+        end
+    end
+end
+
 numbers= {}
+--init number matrix
 function initNumbers()
     for i = 1, WIDTH do
         numbers[i] = {}
@@ -68,13 +106,26 @@ function initNumbers()
             end
         end
     end
+
+    --create scary pattern
+    local scaryWidth = math.random(2, 4)
+    local scaryHeight = math.random(2, 4)
+    local lowerX = math.random(10, WIDTH - scaryWidth)
+    local lowerY = math.random(10, HEIGHT - scaryHeight)
+    createScaryNumbers(numbers, lowerX, lowerY, lowerX + scaryWidth, lowerY + scaryHeight, 0.7)
 end
 
+--draw number grid, considering input offset
 function drawGrid(oX, oY)
     playdate.graphics.setDrawOffset(offsetX, offsetY)
     gfx.setScreenClipRect(GRID_AREA)
     for i = 1, WIDTH do
         for j = 1, HEIGHT do
+            if(numbers[i][j].scary) then
+                gfx.setFont(GameAssets.LARGE_FONT)
+            else
+                gfx.setFont(GameAssets.NORMAL_FONT)
+            end
             gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
             gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING, numbers[i][j].curY + HEADER_HEIGHT)
         end
@@ -83,6 +134,7 @@ function drawGrid(oX, oY)
     playdate.graphics.setDrawOffset(0,0)
 end
 
+-- render UI
 function render()
     --update numbers
     for i = 1, WIDTH do
@@ -146,6 +198,7 @@ function render()
     
 end
 
+--look for input in order to adjust offset
 function handleInput()
     if playdate.buttonIsPressed( playdate.kButtonUp ) then
         offsetY-=1

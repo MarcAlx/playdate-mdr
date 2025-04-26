@@ -18,15 +18,17 @@ class('Number', {
     curX=nil,
     curY=nil,
     dir=true,
+    scary=false,
 }).extends(Object)
 
-function Number:init(value,x,y, direction)
+function Number:init(value,x,y, direction, scary)
     self.value=value
     self.x=x
     self.y=y
     self.curX=x
     self.curY=y
     self.direction=direction
+    self.scary=scary
 
     if(self.direction == Direction.HORIZONTAL) then
         self.curX = self.curX + math.random(-2,2)
