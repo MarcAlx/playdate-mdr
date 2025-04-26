@@ -1,4 +1,5 @@
 # playdate-mdr
+
 Macrodata Refinement terminal for play.date
 
 @see https://severance.wiki/macrodata_refinement
@@ -40,3 +41,7 @@ Macrodata Refinement terminal for play.date
 ## Building for release
 
     pdc -s source dist/mdr-terminal.pdx
+
+## Usefull links
+
+https://www.gingerbeardman.com/canvas-dither/
