@@ -1,6 +1,8 @@
 # playdate-mdr
 Macrodata Refinement terminal for play.date
 
+@see https://severance.wiki/macrodata_refinement
+
 ## Getting started
 
 ### Pre-requisite
