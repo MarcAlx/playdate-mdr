@@ -4,6 +4,7 @@ import "CoreLibs/graphics"
 import "CoreLibs/object"
 import 'CoreLibs/sprites'
 import 'CoreLibs/timer'
+import 'CoreLibs/ui'
 
 import "engine/utils/debug"
 import "engine/utils/luaUtils"
@@ -20,19 +21,33 @@ local gfx  <const> = playdate.graphics
 local disp  <const> = playdate.display
 local tmr  <const> = playdate.timer
 
-refreshTimer = nil
+--game state
+GameState = {
+    SPLASHSCREEN = 0,
+    SEARCH = 1
+}
+--make it constant
+GameState = protect(GameState)
 
+--grid related
 WIDTH = 250
-HEIGHT = 100
+HEIGHT = 250
+NB_ON_SCREEN_WIDTH = 25
+NB_ON_SCREEN_HEIGHT= 9
+
+--design
 PADDING = 4
 HEADER_HEIGHT = 27
 GRID_HEIGHT = 180
 FOLDER_HEIGHT = 219
 OFFSET_STEP = 2
+NUMBER_SPACING = 15
+RENDER_DELTA_IN_SECOND = 0.45
 
 GRID_AREA = playdate.geometry.rect.new(15, HEADER_HEIGHT+2, 372, 150)
 PROGRESS_BAR = playdate.geometry.rect.new(10, 8, 300, 17)
 
+--folder
 FOLDER_OFFSET = 30
 FOLDER_SPACING = 15
 FOLDER_PROGRESS_WIDTH  = 50
@@ -48,6 +63,7 @@ PROGRESS_4 = playdate.geometry.rect.new(FOLDER_OFFSET + (4 * FOLDER_SPACING) + (
 FOLDER_5   = playdate.geometry.rect.new(FOLDER_OFFSET + (5 * FOLDER_SPACING) + (4*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + 4                              , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 PROGRESS_5 = playdate.geometry.rect.new(FOLDER_OFFSET + (5 * FOLDER_SPACING) + (4*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + (1*FOLDER_PROGRESS_HEIGHT) + 8 , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 
+refreshTimer = nil
 offsetX = -200
 offsetY = -200
 progress = 0
@@ -56,9 +72,32 @@ frolder2Progress = 0
 frolder3Progress = 0
 frolder4Progress = 0
 frolder5Progress = 0
+scaryArea = nil
+displayedArea = nil
+state = GameState.SPLASHSCREEN
+sinceLastRender = playdate.getElapsedTime()
+wasCrankdisplayed = false
+
+--true if scary numbers are on screen
+function areScaryNumbersOnScreen()
+    return scaryArea~=il 
+       and displayedArea~=nil
+       and displayedArea:containsRect(scaryArea)
+end
+
+--add scary numbers
+function addScaryNumbers()
+    --create scary pattern
+    local scaryWidth = math.random(2, 4)
+    local scaryHeight = math.random(2, 4)
+    local lowerX = math.random(10, WIDTH - scaryWidth)
+    local lowerY = math.random(10, HEIGHT - scaryHeight)
+    scaryArea = playdate.geometry.rect.new(lowerX, lowerY, scaryWidth, scaryHeight) 
+    generateScaryPattern(numbers, lowerX, lowerY, lowerX + scaryWidth, lowerY + scaryHeight, 0.7)
+end
 
 -- create scary pattern in given number matrix
-function createScaryNumbers(matrix, x1, y1, x2, y2, density)
+function generateScaryPattern(matrix, x1, y1, x2, y2, density)
     density = density or 0.7
     --identify scary
     for y = y1, y2 do
@@ -101,19 +140,21 @@ function initNumbers()
         numbers[i] = {}
         for j = 1, HEIGHT do
             if(math.fmod(i,2) == 0) then 
-                numbers[i][j] = Number(math.random(0, 9), i*15, j*15, Direction.HORIZONTAL)
+                numbers[i][j] = Number(math.random(0, 9), i*NUMBER_SPACING, j*NUMBER_SPACING, Direction.HORIZONTAL)
             else
-                numbers[i][j] = Number(math.random(0, 9), i*15, j*15, Direction.VERTICAL)
+                numbers[i][j] = Number(math.random(0, 9), i*NUMBER_SPACING, j*NUMBER_SPACING, Direction.VERTICAL)
             end
         end
     end
+    addScaryNumbers()
+end
 
-    --create scary pattern
-    local scaryWidth = math.random(2, 4)
-    local scaryHeight = math.random(2, 4)
-    local lowerX = math.random(10, WIDTH - scaryWidth)
-    local lowerY = math.random(10, HEIGHT - scaryHeight)
-    createScaryNumbers(numbers, lowerX, lowerY, lowerX + scaryWidth, lowerY + scaryHeight, 0.7)
+--update display area
+function updateDisplayedArea()
+    displayedArea = playdate.geometry.rect.new(math.floor(((-offsetX)/(NUMBER_SPACING))),
+                                               math.floor(((-offsetY)/(NUMBER_SPACING))),
+                                               NB_ON_SCREEN_WIDTH,
+                                               NB_ON_SCREEN_HEIGHT)
 end
 
 --draw number grid, considering input offset
@@ -122,19 +163,54 @@ function drawGrid(oX, oY)
     gfx.fillRect(GRID_AREA)
     playdate.graphics.setDrawOffset(offsetX, offsetY)
     gfx.setScreenClipRect(GRID_AREA)
-    for i = 1, WIDTH do
-        for j = 1, HEIGHT do
+    for i = displayedArea.x+1, displayedArea.x+1+displayedArea.width do
+        for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
             if(numbers[i][j].scary) then
                 gfx.setFont(GameAssets.LARGE_FONT)
             else
                 gfx.setFont(GameAssets.NORMAL_FONT)
             end
             gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-            gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING, numbers[i][j].curY + HEADER_HEIGHT)
+            gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING*2, numbers[i][j].curY + HEADER_HEIGHT)
         end
     end
     gfx.clearClipRect()
     playdate.graphics.setDrawOffset(0,0)
+end
+
+--draw folders
+function drawFolders()
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillRect(0,GRID_HEIGHT,playdate.display.getWidth(),GRID_HEIGHT)
+    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+    gfx.drawText("O1", FOLDER_1.x + FOLDER_1.width/2.5, FOLDER_1.y+2)
+    gfx.drawText("O2", FOLDER_2.x + FOLDER_2.width/2.5, FOLDER_2.y+2)
+    gfx.drawText("O3", FOLDER_3.x + FOLDER_3.width/2.5, FOLDER_3.y+2)
+    gfx.drawText("O4", FOLDER_4.x + FOLDER_4.width/2.5, FOLDER_4.y+2)
+    gfx.drawText("O5", FOLDER_5.x + FOLDER_5.width/2.5, FOLDER_5.y+2)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.drawLine(PADDING,GRID_HEIGHT,playdate.display.getWidth()-(2*PADDING)+2,GRID_HEIGHT)
+    gfx.drawRect(FOLDER_1)
+    gfx.drawRect(PROGRESS_1)
+    gfx.drawRect(FOLDER_2)
+    gfx.drawRect(PROGRESS_2)
+    gfx.drawRect(FOLDER_3)
+    gfx.drawRect(PROGRESS_3)
+    gfx.drawRect(FOLDER_4)
+    gfx.drawRect(PROGRESS_4)
+    gfx.drawRect(FOLDER_5)
+    gfx.drawRect(PROGRESS_5)
+end
+
+--draw screen borders
+function drawScreenCorner()
+    gfx.drawRoundRect(PADDING,PADDING,playdate.display.getWidth()-8,playdate.display.getHeight()-(2*PADDING),5)
+end
+
+--draw coordinates
+function drawCoord()
+    gfx.fillRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-(3*PADDING))
+    gfx.fillRoundRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-PADDING, 5)
 end
 
 -- draw static ui shell
@@ -153,53 +229,42 @@ function drawShell()
     gfx.drawLine(PADDING,HEADER_HEIGHT,playdate.display.getWidth()-(2*PADDING)+2,HEADER_HEIGHT)
     gfx.setImageDrawMode(gfx.kDrawModeCopy)
     GameAssets.LOGO_SMALL:draw(PROGRESS_BAR.width+PROGRESS_BAR.x+45, 6)
-    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
 
     --start folder
-    gfx.drawLine(PADDING,GRID_HEIGHT,playdate.display.getWidth()-(2*PADDING)+2,GRID_HEIGHT)
-    gfx.setColor(gfx.kColorWhite)
-    gfx.drawRect(FOLDER_1)
-    gfx.drawRect(PROGRESS_1)
-    gfx.drawRect(FOLDER_2)
-    gfx.drawRect(PROGRESS_2)
-    gfx.drawRect(FOLDER_3)
-    gfx.drawRect(PROGRESS_3)
-    gfx.drawRect(FOLDER_4)
-    gfx.drawRect(PROGRESS_4)
-    gfx.drawRect(FOLDER_5)
-    gfx.drawRect(PROGRESS_5)
-
-    gfx.drawText("O1", FOLDER_1.x + FOLDER_1.width/2.5, FOLDER_1.y+2)
-    gfx.drawText("O2", FOLDER_2.x + FOLDER_2.width/2.5, FOLDER_2.y+2)
-    gfx.drawText("O3", FOLDER_3.x + FOLDER_3.width/2.5, FOLDER_3.y+2)
-    gfx.drawText("O4", FOLDER_4.x + FOLDER_4.width/2.5, FOLDER_4.y+2)
-    gfx.drawText("O5", FOLDER_5.x + FOLDER_5.width/2.5, FOLDER_5.y+2)
+    drawFolders()
 
     --start coord
     --remove top round
-    gfx.fillRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-(3*PADDING))
-    gfx.fillRoundRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-PADDING, 5)
-    
-    --screen corner
-    gfx.drawRoundRect(PADDING,PADDING,playdate.display.getWidth()-8,playdate.display.getHeight()-(2*PADDING),5)
+    drawCoord()
 
+    --screen corner
+    drawScreenCorner()
 end
 
 -- render UI
 function render()
-    --update numbers
-    for i = 1, WIDTH do
-        for j = 1, HEIGHT do
+    --update visible numbers
+    for i = displayedArea.x+1, displayedArea.x+1+displayedArea.width do
+        for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
             numbers[i][j]:update()
         end
     end   
     
+    --grid
+    drawGrid(offsetX, offsetY)
+
+    --start coord
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(150, 222, 120, 10)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
+    gfx.drawText("0x" .. string.format("%x", offsetX) .. " : " .. "0x" .. string.format("%x", offsetY), 150, 222)
+end
+
+-- all progress bars
+function drawProgress()
     --progress
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
     gfx.drawText(progress .. "% Complete", 30, 10)
-    
-    --grid
-    drawGrid(offsetX, offsetY)
     
     --start folder
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
@@ -208,26 +273,32 @@ function render()
     gfx.drawText(frolder3Progress .. "%", PROGRESS_3.x + PROGRESS_3.width/2.5, PROGRESS_3.y+2)
     gfx.drawText(frolder4Progress .. "%", PROGRESS_4.x + PROGRESS_4.width/2.5, PROGRESS_4.y+2)
     gfx.drawText(frolder5Progress .. "%", PROGRESS_5.x + PROGRESS_5.width/2.5, PROGRESS_5.y+2)
-
-    --start coord
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(150, 222, 120, 10)
-    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
-    gfx.drawText("0x" .. string.format("%x", offsetX) .. " : " .. "0x" .. string.format("%x", offsetY), 150, 222)
-
 end
 
 --look for input in order to adjust offset
 function handleInput()
-    if playdate.buttonIsPressed( playdate.kButtonUp ) then
-        offsetY+=OFFSET_STEP
-    elseif playdate.buttonIsPressed( playdate.kButtonRight ) then
-        offsetX-=OFFSET_STEP
-    elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
-        offsetY-=OFFSET_STEP
-    elseif playdate.buttonIsPressed( playdate.kButtonLeft ) then
-        offsetX+=OFFSET_STEP
+    local newOx = offsetX
+    local newOy = offsetY
+    if playdate.buttonIsPressed(playdate.kButtonUp) then
+        newOy = offsetY + OFFSET_STEP
+    elseif playdate.buttonIsPressed(playdate.kButtonRight) then
+        newOx = offsetX - OFFSET_STEP
+    elseif playdate.buttonIsPressed(playdate.kButtonDown) then
+        newOy = offsetY - OFFSET_STEP
+    elseif playdate.buttonIsPressed(playdate.kButtonLeft) then
+        newOx = offsetX + OFFSET_STEP
     end
+
+    -- prevent offscreen display
+
+    if(((HEIGHT - NB_ON_SCREEN_HEIGHT) * NUMBER_SPACING * -1)+1 <= newOy and newOy <= 0) then 
+        offsetY = newOy
+    end
+    if(((WIDTH  - NB_ON_SCREEN_WIDTH)  * NUMBER_SPACING * -1)+1 <= newOx and newOx <= 0) then 
+        offsetX = newOx
+    end
+    
+    updateDisplayedArea()
 end
 
 --[[
@@ -245,21 +316,51 @@ function startup()
 
     GameAssets.LOGO:draw(0,0)
 
+    updateDisplayedArea()
+
     --delay update to let startup logo display
     tmr.new(2000, function() 
+        state = GameState.SEARCH
+        --clear screen
         gfx.clear(gfx.kColorBlack)
         drawShell()
-        tmr.keyRepeatTimerWithDelay(1000,500,render)
         tmr.keyRepeatTimerWithDelay(0,150,handleInput)
     end)
 end
 
 --startup call
 startup();
+
 --[[
     Called every frame, add here your game logic
 ]]--
 function playdate.update()
+    --not splashscreen draw game UI
+    if(state ~= GameState.SPLASHSCREEN) then 
+        --update progresses, not as a timer to not overlap crank draw
+        drawProgress()
+        --render if enough time passed
+        if(playdate.getElapsedTime()-sinceLastRender > RENDER_DELTA_IN_SECOND) then
+            render()
+            sinceLastRender = playdate.getElapsedTime()
+        end
+
+        --check scary numbers
+        if(areScaryNumbersOnScreen()) then  
+            gfx.setImageDrawMode(gfx.kDrawModeCopy)
+            playdate.ui.crankIndicator:draw()
+            wasCrankdisplayed = true
+            --todo change mode
+        elseif(wasCrankdisplayed) then
+            wasCrankdisplayed = false
+            drawFolders()
+            drawCoord()
+            drawScreenCorner()
+        end
+    end
+
+   -- playdate.drawFPS(0,0)
+
     --update all sprites
     gfx.sprite.update()
     --update all timers
