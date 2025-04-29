@@ -212,7 +212,7 @@ function render()
     --start coord
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(150, 222, 120, 10)
-    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
     gfx.drawText("0x" .. string.format("%x", offsetX) .. " : " .. "0x" .. string.format("%x", offsetY), 150, 222)
 
 end
