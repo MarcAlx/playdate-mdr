@@ -211,8 +211,8 @@ function prepareScaryNumbers()
             if(numbers[x][y].scary) then 
                 table.insert(scaryNumbers, 
                              Number(numbers[x][y].value, 
-                             scaryLocation.x-15+math.random(-15,15),
-                             scaryLocation.y-90+math.random(-15,15),
+                                    SCREEN_CENTER.x-SCARY_RADIUS/2+math.random(-SCARY_RADIUS/2,SCARY_RADIUS/2),
+                                    SCREEN_CENTER.y-SCARY_RADIUS+math.random(-SCARY_RADIUS/2,SCARY_RADIUS/2),
                                     Direction.HORIZONTAL))
             end
         end
@@ -306,7 +306,8 @@ function updateDisplayedArea()
                                                NB_ON_SCREEN_WIDTH,
                                                NB_ON_SCREEN_HEIGHT)
     displayedCenter =  playdate.geometry.point.new(displayedArea.x+displayedArea.width/2, displayedArea.y+displayedArea.height/2)
-   -- print(displayedArea.x .. " " .. displayedArea.y)
+
+   --print(scaryArea.x .. " " .. scaryArea.y .. " - " .. displayedArea.x .. " " .. displayedArea.y)
 end
 
 --draw number grid, considering input offset
@@ -580,6 +581,8 @@ function moveBag(t)
     for i = 1, #scaryNumbers do
         scaryNumbers[i].curX += deltaX
         scaryNumbers[i].curY += deltaY
+        scaryNumbers[i].x = scaryNumbers[i].curX
+        scaryNumbers[i].y = scaryNumbers[i].curY
     end
 end
 
