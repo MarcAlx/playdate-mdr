@@ -2,11 +2,25 @@
 
 Macrodata Refinement terminal for play.date
 
-![](./gif/demo.gif)
+_The work is mysterious and important._
 
 @see https://severance.wiki/macrodata_refinement
 
-_n.b - please note that this is a current work in progress with no ETA, no gameplay planned and code all over the place._
+## What is it?
+
+**Please, consider this as a concept (not game) session may be long to acheive 100% completion, it resets once 100% reached.**
+
+1. Move using D-Pad
+
+![](./gif/navigation.gif)
+
+2. Once you have found scary numbers crank! 
+
+![](./gif/catch.gif)
+
+3. Look for next numbers.
+
+_n.b - no more feature planned, and code will stay all over the place (no factoring, too few comments...)._
 
 _n.b 2 - further testing on device may be required_
 
