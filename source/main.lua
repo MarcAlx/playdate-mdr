@@ -38,6 +38,8 @@ HEIGHT = 250
 NB_ON_SCREEN_WIDTH = 25
 NB_ON_SCREEN_HEIGHT= 9
 
+SCREEN_CENTER = playdate.geometry.point.new(playdate.display.getWidth()/2,playdate.display.getHeight()/2)
+
 --design
 PADDING = 4
 HEADER_HEIGHT = 27
@@ -83,6 +85,7 @@ folder4Progress = 0
 folder5Progress = 0
 scaryArea = nil
 displayedArea = nil
+displayedCenter = nil
 state = GameState.SPLASHSCREEN
 wasCrankdisplayed = false
 scaryNumbers = {}
@@ -94,6 +97,7 @@ movePercentage = 0.0
 bagPosition = nil
 bagDestination = nil
 possibleScore=0
+scaryCenter= nil
 
 --update progresss by applying possible score
 function updateProgress()
@@ -174,7 +178,7 @@ end
 function areScaryNumbersOnScreen()
     return scaryArea~=il 
        and displayedArea~=nil
-       and displayedArea:containsRect(scaryArea)
+       and scaryArea:containsPoint(displayedCenter)
 end
 
 --add scary numbers
@@ -208,7 +212,7 @@ function prepareScaryNumbers()
                 table.insert(scaryNumbers, 
                              Number(numbers[x][y].value, 
                              scaryLocation.x-15+math.random(-15,15),
-                             scaryLocation.y-40+math.random(-15,15),
+                             scaryLocation.y-90+math.random(-15,15),
                                     Direction.HORIZONTAL))
             end
         end
@@ -301,6 +305,8 @@ function updateDisplayedArea()
                                                math.floor(((-offsetY)/(NUMBER_SPACING))),
                                                NB_ON_SCREEN_WIDTH,
                                                NB_ON_SCREEN_HEIGHT)
+    displayedCenter =  playdate.geometry.point.new(displayedArea.x+displayedArea.width/2, displayedArea.y+displayedArea.height/2)
+   -- print(displayedArea.x .. " " .. displayedArea.y)
 end
 
 --draw number grid, considering input offset
@@ -585,7 +591,9 @@ startup();
 ]]--
 function playdate.update()
     --not splashscreen draw game UI
-    if(state ~= GameState.SPLASHSCREEN) then 
+    if(state ~= GameState.SPLASHSCREEN) then
+        --clear screen
+        gfx.clear(gfx.kColorBlack) 
         drawShell()
         drawFolders()
         drawCoord()
@@ -615,7 +623,7 @@ function playdate.update()
                 crankStart = playdate.getCrankPosition()
                 crankScary = 1
                 movePercentage = 0.0
-                bagPosition = scaryLocation
+                bagPosition = SCREEN_CENTER
             end
         else
             --prevent move when scary are on screen
