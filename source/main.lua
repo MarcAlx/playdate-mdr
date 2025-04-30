@@ -75,7 +75,6 @@ frolder5Progress = 0
 scaryArea = nil
 displayedArea = nil
 state = GameState.SPLASHSCREEN
-sinceLastRender = playdate.getElapsedTime()
 wasCrankdisplayed = false
 
 --true if scary numbers are on screen
@@ -165,13 +164,15 @@ function drawGrid(oX, oY)
     gfx.setScreenClipRect(GRID_AREA)
     for i = displayedArea.x+1, displayedArea.x+1+displayedArea.width do
         for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
-            if(numbers[i][j].scary) then
+            if(numbers[i][j].scary and state == GameState.SEARCH) then
                 gfx.setFont(GameAssets.LARGE_FONT)
+                gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+                gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING*2, numbers[i][j].curY + HEADER_HEIGHT)
             else
                 gfx.setFont(GameAssets.NORMAL_FONT)
+                gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+                gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING*2, numbers[i][j].curY + HEADER_HEIGHT)
             end
-            gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-            gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING*2, numbers[i][j].curY + HEADER_HEIGHT)
         end
     end
     gfx.clearClipRect()
@@ -209,13 +210,18 @@ end
 
 --draw coordinates
 function drawCoord()
+    --bg
     gfx.fillRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-(3*PADDING))
     gfx.fillRoundRect(PADDING,FOLDER_HEIGHT,playdate.display.getWidth()-8, playdate.display.getHeight()-FOLDER_HEIGHT-PADDING, 5)
+    --text
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(150, 222, 120, 10)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
+    gfx.drawText("0x" .. string.format("%x", offsetX) .. " : " .. "0x" .. string.format("%x", offsetY), 150, 222)
 end
 
 -- draw static ui shell
 function drawShell() 
-    --playdate.drawFPS(190,0)
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(GRID_AREA)
 
@@ -248,16 +254,7 @@ function render()
         for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
             numbers[i][j]:update()
         end
-    end   
-    
-    --grid
-    drawGrid(offsetX, offsetY)
-
-    --start coord
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(150, 222, 120, 10)
-    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
-    gfx.drawText("0x" .. string.format("%x", offsetX) .. " : " .. "0x" .. string.format("%x", offsetY), 150, 222)
+    end
 end
 
 -- all progress bars
@@ -323,8 +320,8 @@ function startup()
         state = GameState.SEARCH
         --clear screen
         gfx.clear(gfx.kColorBlack)
-        drawShell()
-        tmr.keyRepeatTimerWithDelay(0,150,handleInput)
+        --start timers
+        tmr.keyRepeatTimerWithDelay(0,300,render)
     end)
 end
 
@@ -337,29 +334,25 @@ startup();
 function playdate.update()
     --not splashscreen draw game UI
     if(state ~= GameState.SPLASHSCREEN) then 
-        --update progresses, not as a timer to not overlap crank draw
+        drawShell()
+        drawFolders()
+        drawCoord()
+        drawScreenCorner()
         drawProgress()
-        --render if enough time passed
-        if(playdate.getElapsedTime()-sinceLastRender > RENDER_DELTA_IN_SECOND) then
-            render()
-            sinceLastRender = playdate.getElapsedTime()
-        end
-
+        drawGrid(offsetX, offsetY)
+    
         --check scary numbers
         if(areScaryNumbersOnScreen()) then  
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
             playdate.ui.crankIndicator:draw()
             wasCrankdisplayed = true
-            --todo change mode
-        elseif(wasCrankdisplayed) then
-            wasCrankdisplayed = false
-            drawFolders()
-            drawCoord()
-            drawScreenCorner()
+        else
+            --prevent move when scary are on screen
+            handleInput()
+            state = GameState.SEARCH
         end
     end
 
-   -- playdate.drawFPS(0,0)
 
     --update all sprites
     gfx.sprite.update()
