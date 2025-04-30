@@ -182,8 +182,9 @@ function addScaryNumbers()
     --create scary pattern
     local scaryWidth = math.random(2, 4)
     local scaryHeight = math.random(2, 4)
-    local lowerX = math.random(10, WIDTH - scaryWidth)
-    local lowerY = math.random(10, HEIGHT - scaryHeight)
+    local lowerX = 12--math.random(10, WIDTH - scaryWidth)
+    local lowerY = 12--math.random(10, HEIGHT - scaryHeight)
+    --print(lowerX.." "..lowerY)
     scaryArea = playdate.geometry.rect.new(lowerX, lowerY, scaryWidth, scaryHeight) 
     generateScaryPattern(numbers, lowerX, lowerY, lowerX + scaryWidth, lowerY + scaryHeight, 0.7)
     scaryLocation = playdate.geometry.point.new((lowerX+(scaryWidth/1.5)) * NUMBER_SPACING, (lowerY ) * NUMBER_SPACING)
@@ -593,7 +594,6 @@ function playdate.update()
         drawGrid(offsetX, offsetY)
     
         if(movePercentage == 1.0) then
-            scaryArea = nil
             updateProgress()
             state = GameState.SEARCH
             if((folder1Progress+folder2Progress+folder3Progress+folder4Progress+folder5Progress) >= 500) then
