@@ -24,7 +24,9 @@ local tmr  <const> = playdate.timer
 --game state
 GameState = {
     SPLASHSCREEN = 0,
-    SEARCH = 1
+    SEARCH = 1,
+    CATCH = 2,
+    CATCHED = 3,
 }
 --make it constant
 GameState = protect(GameState)
@@ -43,6 +45,7 @@ FOLDER_HEIGHT = 219
 OFFSET_STEP = 2
 NUMBER_SPACING = 15
 RENDER_DELTA_IN_SECOND = 0.45
+SCARY_RADIUS = 30
 
 GRID_AREA = playdate.geometry.rect.new(15, HEADER_HEIGHT+2, 372, 150)
 PROGRESS_BAR = playdate.geometry.rect.new(10, 8, 300, 17)
@@ -76,6 +79,10 @@ scaryArea = nil
 displayedArea = nil
 state = GameState.SPLASHSCREEN
 wasCrankdisplayed = false
+scaryNumbers = {}
+scaryLocation = nil
+crankStart = 0
+crankScary = 0
 
 --true if scary numbers are on screen
 function areScaryNumbersOnScreen()
@@ -93,11 +100,58 @@ function addScaryNumbers()
     local lowerY = math.random(10, HEIGHT - scaryHeight)
     scaryArea = playdate.geometry.rect.new(lowerX, lowerY, scaryWidth, scaryHeight) 
     generateScaryPattern(numbers, lowerX, lowerY, lowerX + scaryWidth, lowerY + scaryHeight, 0.7)
+    scaryLocation = playdate.geometry.point.new((lowerX+(scaryWidth/1.5)) * NUMBER_SPACING, (lowerY ) * NUMBER_SPACING)
+    prepareScaryNumbers()
+end
+
+function prepareScaryNumbers()
+    local lastx = scaryArea.width+scaryArea.x
+    local lasty = scaryArea.height+scaryArea.y
+
+    --first line
+    for x = scaryArea.x, lastx do 
+        for y = scaryArea.y, lasty do 
+            if(numbers[x][y].scary) then 
+                table.insert(scaryNumbers, 
+                             Number(numbers[x][y].value, 
+                             scaryLocation.x-15+math.random(-15,15),
+                             scaryLocation.y-40+math.random(-15,15),
+                                    Direction.HORIZONTAL))
+            end
+        end
+    end
+end
+
+-- unused
+function identifyScaryBorder() 
+    local lastx = scaryArea.width+scaryArea.x
+    local lasty = scaryArea.height+scaryArea.y
+
+    --first line
+    for i = scaryArea.x, lastx do 
+        print(numbers[i][scaryArea.y].value)
+    end
+
+    --right most col (exept first line)
+    for j = scaryArea.y+1, lasty do 
+        print(numbers[lastx][j].value)
+    end
+
+    --bottom row (exept last col)
+    for i = lastx-1, scaryArea.x, -1 do 
+        print(numbers[i][lasty].value)
+    end
+
+    --first col (exept first and last row)
+    for j = lasty-1, scaryArea.y+1, -1 do 
+        print(numbers[scaryArea.x][j].value)
+    end
 end
 
 -- create scary pattern in given number matrix
 function generateScaryPattern(matrix, x1, y1, x2, y2, density)
     density = density or 0.7
+    scaryNumbers = {}
     --identify scary
     for y = y1, y2 do
         for x = x1, x2 do
@@ -160,11 +214,13 @@ end
 function drawGrid(oX, oY)
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(GRID_AREA)
-    playdate.graphics.setDrawOffset(offsetX, offsetY)
+    playdate.graphics.setDrawOffset(oX, oY)
     gfx.setScreenClipRect(GRID_AREA)
     for i = displayedArea.x+1, displayedArea.x+1+displayedArea.width do
         for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
-            if(numbers[i][j].scary and state == GameState.SEARCH) then
+            if(numbers[i][j].scary and (state == GameState.CATCH or state == GameState.CATCHED) and crankScary > 1) then
+                --do nothing
+            elseif(numbers[i][j].scary and (state == GameState.SEARCH or state == GameState.CATCH)) then
                 gfx.setFont(GameAssets.LARGE_FONT)
                 gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
                 gfx.drawText(numbers[i][j].value, numbers[i][j].curX + PADDING*2, numbers[i][j].curY + HEADER_HEIGHT)
@@ -181,6 +237,7 @@ end
 
 --draw folders
 function drawFolders()
+    gfx.setFont(GameAssets.NORMAL_FONT)
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(0,GRID_HEIGHT,playdate.display.getWidth(),GRID_HEIGHT)
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
@@ -247,8 +304,8 @@ function drawShell()
     drawScreenCorner()
 end
 
--- render UI
-function render()
+-- render all numbers
+function updateAllNumbers()
     --update visible numbers
     for i = displayedArea.x+1, displayedArea.x+1+displayedArea.width do
         for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
@@ -257,8 +314,17 @@ function render()
     end
 end
 
+-- render all numbers
+function updateNumbersInBag()
+    --update visible numbers
+    for i = 1, #scaryNumbers do
+        scaryNumbers[i]:update()
+    end
+end
+
 -- all progress bars
 function drawProgress()
+    gfx.setFont(GameAssets.NORMAL_FONT)
     --progress
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
     gfx.drawText(progress .. "% Complete", 30, 10)
@@ -274,28 +340,52 @@ end
 
 --look for input in order to adjust offset
 function handleInput()
-    local newOx = offsetX
-    local newOy = offsetY
-    if playdate.buttonIsPressed(playdate.kButtonUp) then
-        newOy = offsetY + OFFSET_STEP
-    elseif playdate.buttonIsPressed(playdate.kButtonRight) then
-        newOx = offsetX - OFFSET_STEP
-    elseif playdate.buttonIsPressed(playdate.kButtonDown) then
-        newOy = offsetY - OFFSET_STEP
-    elseif playdate.buttonIsPressed(playdate.kButtonLeft) then
-        newOx = offsetX + OFFSET_STEP
-    end
 
-    -- prevent offscreen display
+    if(state == GameState.SEARCH) then
+        local newOx = offsetX
+        local newOy = offsetY
+        if playdate.buttonIsPressed(playdate.kButtonUp) then
+            newOy = offsetY + OFFSET_STEP
+        elseif playdate.buttonIsPressed(playdate.kButtonRight) then
+            newOx = offsetX - OFFSET_STEP
+        elseif playdate.buttonIsPressed(playdate.kButtonDown) then
+            newOy = offsetY - OFFSET_STEP
+        elseif playdate.buttonIsPressed(playdate.kButtonLeft) then
+            newOx = offsetX + OFFSET_STEP
+        end
 
-    if(((HEIGHT - NB_ON_SCREEN_HEIGHT) * NUMBER_SPACING * -1)+1 <= newOy and newOy <= 0) then 
-        offsetY = newOy
+        -- prevent offscreen display
+
+        if(((HEIGHT - NB_ON_SCREEN_HEIGHT) * NUMBER_SPACING * -1)+1 <= newOy and newOy <= 0) then 
+            offsetY = newOy
+        end
+        if(((WIDTH  - NB_ON_SCREEN_WIDTH)  * NUMBER_SPACING * -1)+1 <= newOx and newOx <= 0) then 
+            offsetX = newOx
+        end
+        
+        updateDisplayedArea()
+    elseif(state == GameState.CATCH) then
+        crankScary = crankScary + math.abs(playdate.getCrankChange())
     end
-    if(((WIDTH  - NB_ON_SCREEN_WIDTH)  * NUMBER_SPACING * -1)+1 <= newOx and newOx <= 0) then 
-        offsetX = newOx
+end
+
+function drawBagNumber(oX,oY)
+    --playdate.graphics.setDrawOffset(oX, oY)
+    --border
+    gfx.setColor(gfx.kColorWhite)
+    gfx.drawArc(scaryLocation.x,scaryLocation.y, SCARY_RADIUS+1, 0, crankScary)
+    --background
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillCircleAtPoint(scaryLocation, SCARY_RADIUS)
+    print(scaryLocation.x .. "__" .. scaryLocation.y)
+    --numbers
+    for i = 1, #scaryNumbers do
+        gfx.setFont(GameAssets.LARGE_FONT)
+        gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+        gfx.drawText(scaryNumbers[i].value, scaryNumbers[i].curX + PADDING*2, scaryNumbers[i].curY + HEADER_HEIGHT)
+       -- print(scaryNumbers[i].curX .. " | " .. scaryNumbers[i].curY)
     end
-    
-    updateDisplayedArea()
+    --playdate.graphics.setDrawOffset(0, 0)
 end
 
 --[[
@@ -321,7 +411,8 @@ function startup()
         --clear screen
         gfx.clear(gfx.kColorBlack)
         --start timers
-        tmr.keyRepeatTimerWithDelay(0,300,render)
+        tmr.keyRepeatTimerWithDelay(0,300,updateAllNumbers)
+        tmr.keyRepeatTimerWithDelay(0,300,updateNumbersInBag)
     end)
 end
 
@@ -341,19 +432,34 @@ function playdate.update()
         drawProgress()
         drawGrid(offsetX, offsetY)
     
+        if(crankScary >= 360) then
+            crankScary = 360
+            state = GameState.CATCHED
         --check scary numbers
-        if(areScaryNumbersOnScreen()) then  
+        elseif(areScaryNumbersOnScreen()) then  
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
             playdate.ui.crankIndicator:draw()
             wasCrankdisplayed = true
+            oldState = state
+            state = GameState.CATCH
+            if(state ~= oldState) then
+                crankStart = playdate.getCrankPosition()
+                crankScary = 1
+            end
         else
             --prevent move when scary are on screen
-            handleInput()
             state = GameState.SEARCH
         end
+
+        if((state == GameState.CATCH or state == GameState.CATCHED) and crankScary > 1) then 
+            drawBagNumber(offsetX, offsetY)
+        end
+
+        handleInput()
     end
 
-
+    --playdate.drawFPS(0,0)
+         
     --update all sprites
     gfx.sprite.update()
     --update all timers
