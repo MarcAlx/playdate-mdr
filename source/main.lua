@@ -5,6 +5,7 @@ import "CoreLibs/object"
 import 'CoreLibs/sprites'
 import 'CoreLibs/timer'
 import 'CoreLibs/ui'
+import 'CoreLibs/math'
 
 import "engine/utils/debug"
 import "engine/utils/luaUtils"
@@ -58,14 +59,19 @@ FOLDER_PROGRESS_WIDTH  = 50
 FOLDER_PROGRESS_HEIGHT = 14
 FOLDER_1   = playdate.geometry.rect.new(FOLDER_OFFSET + (1 * FOLDER_SPACING) + (0*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + 4                              , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 PROGRESS_1 = playdate.geometry.rect.new(FOLDER_OFFSET + (1 * FOLDER_SPACING) + (0*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + (1*FOLDER_PROGRESS_HEIGHT) + 8 , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
+PROGRESS_1_TEXT = playdate.geometry.point.new(PROGRESS_1.x + PROGRESS_1.width/2.5, PROGRESS_1.y+2)
 FOLDER_2   = playdate.geometry.rect.new(FOLDER_OFFSET + (2 * FOLDER_SPACING) + (1*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + 4                              , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 PROGRESS_2 = playdate.geometry.rect.new(FOLDER_OFFSET + (2 * FOLDER_SPACING) + (1*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + (1*FOLDER_PROGRESS_HEIGHT) + 8 , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
+PROGRESS_2_TEXT = playdate.geometry.point.new(PROGRESS_2.x + PROGRESS_2.width/2.5, PROGRESS_2.y+2)
 FOLDER_3   = playdate.geometry.rect.new(FOLDER_OFFSET + (3 * FOLDER_SPACING) + (2*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + 4                              , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 PROGRESS_3 = playdate.geometry.rect.new(FOLDER_OFFSET + (3 * FOLDER_SPACING) + (2*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + (1*FOLDER_PROGRESS_HEIGHT) + 8 , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
+PROGRESS_3_TEXT = playdate.geometry.point.new(PROGRESS_3.x + PROGRESS_3.width/2.5, PROGRESS_3.y+2)
 FOLDER_4   = playdate.geometry.rect.new(FOLDER_OFFSET + (4 * FOLDER_SPACING) + (3*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + 4                              , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 PROGRESS_4 = playdate.geometry.rect.new(FOLDER_OFFSET + (4 * FOLDER_SPACING) + (3*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + (1*FOLDER_PROGRESS_HEIGHT) + 8 , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
+PROGRESS_4_TEXT = playdate.geometry.point.new(PROGRESS_4.x + PROGRESS_4.width/2.5, PROGRESS_4.y+2)
 FOLDER_5   = playdate.geometry.rect.new(FOLDER_OFFSET + (5 * FOLDER_SPACING) + (4*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + 4                              , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
 PROGRESS_5 = playdate.geometry.rect.new(FOLDER_OFFSET + (5 * FOLDER_SPACING) + (4*FOLDER_PROGRESS_WIDTH) , GRID_HEIGHT + (1*FOLDER_PROGRESS_HEIGHT) + 8 , FOLDER_PROGRESS_WIDTH , FOLDER_PROGRESS_HEIGHT)
+PROGRESS_5_TEXT = playdate.geometry.point.new(PROGRESS_5.x + PROGRESS_5.width/2.5, PROGRESS_5.y+2)
 
 refreshTimer = nil
 offsetX = -200
@@ -392,11 +398,11 @@ function drawProgress()
     gfx.fillRect(PROGRESS_4.x+1, PROGRESS_4.y+1, ((folder4Progress/100)*PROGRESS_4.width)-2, PROGRESS_4.height-2)
     gfx.fillRect(PROGRESS_5.x+1, PROGRESS_5.y+1, ((folder5Progress/100)*PROGRESS_5.width)-2, PROGRESS_5.height-2)
     gfx.setImageDrawMode(gfx.kDrawModeNXOR)
-    gfx.drawText(folder1Progress .. "%", PROGRESS_1.x + PROGRESS_1.width/2.5, PROGRESS_1.y+2)
-    gfx.drawText(folder2Progress .. "%", PROGRESS_2.x + PROGRESS_2.width/2.5, PROGRESS_2.y+2)
-    gfx.drawText(folder3Progress .. "%", PROGRESS_3.x + PROGRESS_3.width/2.5, PROGRESS_3.y+2)
-    gfx.drawText(folder4Progress .. "%", PROGRESS_4.x + PROGRESS_4.width/2.5, PROGRESS_4.y+2)
-    gfx.drawText(folder5Progress .. "%", PROGRESS_5.x + PROGRESS_5.width/2.5, PROGRESS_5.y+2)
+    gfx.drawText(folder1Progress .. "%", PROGRESS_1_TEXT.x, PROGRESS_1_TEXT.y)
+    gfx.drawText(folder2Progress .. "%", PROGRESS_2_TEXT.x, PROGRESS_2_TEXT.y)
+    gfx.drawText(folder3Progress .. "%", PROGRESS_3_TEXT.x, PROGRESS_3_TEXT.y)
+    gfx.drawText(folder4Progress .. "%", PROGRESS_4_TEXT.x, PROGRESS_4_TEXT.y)
+    gfx.drawText(folder5Progress .. "%", PROGRESS_5_TEXT.x, PROGRESS_5_TEXT.y)
 end
 
 --look for input in order to adjust offset
@@ -475,6 +481,11 @@ function startup()
         tmr.keyRepeatTimerWithDelay(0,300,updateAllNumbers)
         tmr.keyRepeatTimerWithDelay(0,300,updateNumbersInBag)
     end)
+end
+
+--return linear interpolation between two points
+function lerp(p1, p2, t)
+    return playdate.geometry.point.new(playdate.math.lerp(p1.x,p2.x),playdate.math.lerp(p1.y, p2.y),t)
 end
 
 --startup call
