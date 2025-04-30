@@ -93,6 +93,60 @@ pickedFolder = 1
 movePercentage = 0.0
 bagPosition = nil
 bagDestination = nil
+possibleScore=0
+
+--update progresss by applying possible score
+function updateProgress()
+    if(pickedFolder==1) then 
+        folder1Progress += possibleScore
+        folder1Progress = math.min(100, folder1Progress)
+    elseif(pickedFolder==2) then 
+        folder2Progress += possibleScore
+        folder2Progress = math.min(100, folder2Progress)
+    elseif(pickedFolder==3) then 
+        folder3Progress += possibleScore
+        folder3Progress = math.min(100, folder3Progress)
+    elseif(pickedFolder==4) then 
+        folder4Progress += possibleScore
+        folder4Progress = math.min(100, folder4Progress)
+    elseif(pickedFolder==5) then 
+        folder5Progress += possibleScore
+        folder5Progress = math.min(100, folder5Progress)
+    end
+end
+
+--start new pick
+function start()
+    wasCrankdisplayed = false
+    scaryNumbers = {}
+    crankStart = 0
+    crankScary = 0
+    pickedFolder = 1
+    movePercentage = 0.0
+    bagPosition = nil
+    bagDestination = nil
+    possibleScore = 0
+    
+    if(scaryArea ~= nil) then
+        for x = scaryArea.x, scaryArea.x+scaryArea.width do 
+            for y = scaryArea.y, scaryArea.y+scaryArea.height do 
+                numbers[x][y].scary = false
+            end
+        end
+    end
+
+    addScaryNumbers()
+end
+
+--reset game
+function reset()
+    folder1Progress = 0
+    folder2Progress = 0
+    folder3Progress = 0
+    folder4Progress = 0
+    folder5Progress = 0
+    start()
+end
 
 --pick folder to fill
 function pickFolder()
@@ -135,6 +189,11 @@ function addScaryNumbers()
     scaryLocation = playdate.geometry.point.new((lowerX+(scaryWidth/1.5)) * NUMBER_SPACING, (lowerY ) * NUMBER_SPACING)
     prepareScaryNumbers()
     pickFolder()
+
+    possibleScore = 0
+    for i = 1, #scaryNumbers do
+        possibleScore+=scaryNumbers[i].value
+    end
 end
 
 function prepareScaryNumbers()
@@ -451,6 +510,7 @@ function handleInput()
     end
 end
 
+--draw bag number at position
 function drawBagNumber(at)
     --border
     gfx.setColor(gfx.kColorWhite)
@@ -476,16 +536,21 @@ function startup()
     math.randomseed(playdate.getSecondsSinceEpoch())
 
     initNumbers()
-    
-    gfx.setFont(GameAssets.NORMAL_FONT)
 
     GameAssets.LOGO:draw(0,0)
+
+    state = GameState.SPLASHSCREEN
+
+    gfx.setFont(GameAssets.NORMAL_FONT)
 
     updateDisplayedArea()
 
     --delay update to let startup logo display
     tmr.new(2000, function() 
         state = GameState.SEARCH
+
+        start()
+        
         --clear screen
         gfx.clear(gfx.kColorBlack)
         --start timers
@@ -527,7 +592,16 @@ function playdate.update()
         drawProgress()
         drawGrid(offsetX, offsetY)
     
-        if(crankScary >= 360) then
+        if(movePercentage == 1.0) then
+            scaryArea = nil
+            updateProgress()
+            state = GameState.SEARCH
+            if((folder1Progress+folder2Progress+folder3Progress+folder4Progress+folder5Progress) >= 500) then
+                reset()
+            else
+                start()
+            end
+        elseif(crankScary >= 360) then
             crankScary = 360
             state = GameState.CATCHED
         --check scary numbers
