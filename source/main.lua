@@ -69,12 +69,11 @@ PROGRESS_5 = playdate.geometry.rect.new(FOLDER_OFFSET + (5 * FOLDER_SPACING) + (
 refreshTimer = nil
 offsetX = -200
 offsetY = -200
-progress = 0
-frolder1Progress = 0
-frolder2Progress = 0
-frolder3Progress = 0
-frolder4Progress = 0
-frolder5Progress = 0
+folder1Progress = 0
+folder2Progress = 0
+folder3Progress = 0
+folder4Progress = 0
+folder5Progress = 0
 scaryArea = nil
 displayedArea = nil
 state = GameState.SPLASHSCREEN
@@ -325,17 +324,34 @@ end
 -- all progress bars
 function drawProgress()
     gfx.setFont(GameAssets.NORMAL_FONT)
+    local p = (folder1Progress+folder2Progress+folder3Progress+folder4Progress+folder5Progress)/5/100
     --progress
-    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-    gfx.drawText(progress .. "% Complete", 30, 10)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(PROGRESS_BAR.x+1, PROGRESS_BAR.y+1, PROGRESS_BAR.width-2, PROGRESS_BAR.height-2)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillRect(PROGRESS_BAR.x+1, PROGRESS_BAR.y+1, (p*PROGRESS_BAR.width)-2, PROGRESS_BAR.height-2)
+    gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+    gfx.drawText(p*100 .. "% Complete", 30, 10)
     
     --start folder
-    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-    gfx.drawText(frolder1Progress .. "%", PROGRESS_1.x + PROGRESS_1.width/2.5, PROGRESS_1.y+2)
-    gfx.drawText(frolder2Progress .. "%", PROGRESS_2.x + PROGRESS_2.width/2.5, PROGRESS_2.y+2)
-    gfx.drawText(frolder3Progress .. "%", PROGRESS_3.x + PROGRESS_3.width/2.5, PROGRESS_3.y+2)
-    gfx.drawText(frolder4Progress .. "%", PROGRESS_4.x + PROGRESS_4.width/2.5, PROGRESS_4.y+2)
-    gfx.drawText(frolder5Progress .. "%", PROGRESS_5.x + PROGRESS_5.width/2.5, PROGRESS_5.y+2)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillRect(PROGRESS_1.x+1, PROGRESS_1.y+1, PROGRESS_1.width-2, PROGRESS_1.height-2)
+    gfx.fillRect(PROGRESS_2.x+1, PROGRESS_2.y+1, PROGRESS_2.width-2, PROGRESS_2.height-2)
+    gfx.fillRect(PROGRESS_3.x+1, PROGRESS_3.y+1, PROGRESS_3.width-2, PROGRESS_3.height-2)
+    gfx.fillRect(PROGRESS_4.x+1, PROGRESS_4.y+1, PROGRESS_4.width-2, PROGRESS_4.height-2)
+    gfx.fillRect(PROGRESS_5.x+1, PROGRESS_5.y+1, PROGRESS_5.width-2, PROGRESS_5.height-2)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(PROGRESS_1.x+1, PROGRESS_1.y+1, ((folder1Progress/100)*PROGRESS_1.width)-2, PROGRESS_1.height-2)
+    gfx.fillRect(PROGRESS_2.x+1, PROGRESS_2.y+1, ((folder2Progress/100)*PROGRESS_2.width)-2, PROGRESS_2.height-2)
+    gfx.fillRect(PROGRESS_3.x+1, PROGRESS_3.y+1, ((folder3Progress/100)*PROGRESS_3.width)-2, PROGRESS_3.height-2)
+    gfx.fillRect(PROGRESS_4.x+1, PROGRESS_4.y+1, ((folder4Progress/100)*PROGRESS_4.width)-2, PROGRESS_4.height-2)
+    gfx.fillRect(PROGRESS_5.x+1, PROGRESS_5.y+1, ((folder5Progress/100)*PROGRESS_5.width)-2, PROGRESS_5.height-2)
+    gfx.setImageDrawMode(gfx.kDrawModeNXOR)
+    gfx.drawText(folder1Progress .. "%", PROGRESS_1.x + PROGRESS_1.width/2.5, PROGRESS_1.y+2)
+    gfx.drawText(folder2Progress .. "%", PROGRESS_2.x + PROGRESS_2.width/2.5, PROGRESS_2.y+2)
+    gfx.drawText(folder3Progress .. "%", PROGRESS_3.x + PROGRESS_3.width/2.5, PROGRESS_3.y+2)
+    gfx.drawText(folder4Progress .. "%", PROGRESS_4.x + PROGRESS_4.width/2.5, PROGRESS_4.y+2)
+    gfx.drawText(folder5Progress .. "%", PROGRESS_5.x + PROGRESS_5.width/2.5, PROGRESS_5.y+2)
 end
 
 --look for input in order to adjust offset
