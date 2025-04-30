@@ -44,6 +44,7 @@ GRID_HEIGHT = 180
 FOLDER_HEIGHT = 219
 OFFSET_STEP = 2
 NUMBER_SPACING = 15
+FOLDER_OPEN_AMPLITUDE = 20
 RENDER_DELTA_IN_SECOND = 0.45
 SCARY_RADIUS = 30
 
@@ -82,6 +83,24 @@ scaryNumbers = {}
 scaryLocation = nil
 crankStart = 0
 crankScary = 0
+pickedFolder = 1
+
+--pick folder to fill
+function pickFolder()
+    pickedFolder = 1
+    if(folder1Progress==100) then 
+        pickedFolder=2
+    end
+    if(folder2Progress==100) then 
+        pickedFolder=3
+    end
+    if(folder3Progress==100) then 
+        pickedFolder=4
+    end
+    if(folder4Progress==100) then 
+        pickedFolder=5
+    end
+end
 
 --true if scary numbers are on screen
 function areScaryNumbersOnScreen()
@@ -101,6 +120,7 @@ function addScaryNumbers()
     generateScaryPattern(numbers, lowerX, lowerY, lowerX + scaryWidth, lowerY + scaryHeight, 0.7)
     scaryLocation = playdate.geometry.point.new((lowerX+(scaryWidth/1.5)) * NUMBER_SPACING, (lowerY ) * NUMBER_SPACING)
     prepareScaryNumbers()
+    pickFolder()
 end
 
 function prepareScaryNumbers()
@@ -257,6 +277,31 @@ function drawFolders()
     gfx.drawRect(PROGRESS_4)
     gfx.drawRect(FOLDER_5)
     gfx.drawRect(PROGRESS_5)
+end
+
+--draw folder open according to picked one
+function drawOpenFolder()
+    if(state == GameState.CATCHED) then 
+        gfx.setLineWidth(3)
+        gfx.setColor(gfx.kColorWhite)
+        if(pickedFolder==1) then 
+            gfx.drawLine(FOLDER_1.x                      , FOLDER_1.y, FOLDER_1.x-FOLDER_OPEN_AMPLITUDE                      , FOLDER_1.y-FOLDER_OPEN_AMPLITUDE)
+            gfx.drawLine(FOLDER_1.x+FOLDER_PROGRESS_WIDTH, FOLDER_1.y, FOLDER_1.x+FOLDER_PROGRESS_WIDTH+FOLDER_OPEN_AMPLITUDE, FOLDER_1.y-FOLDER_OPEN_AMPLITUDE)
+        elseif(pickedFolder==2) then 
+            gfx.drawLine(FOLDER_2.x                      , FOLDER_2.y, FOLDER_2.x-FOLDER_OPEN_AMPLITUDE                      , FOLDER_2.y-FOLDER_OPEN_AMPLITUDE)
+            gfx.drawLine(FOLDER_2.x+FOLDER_PROGRESS_WIDTH, FOLDER_2.y, FOLDER_2.x+FOLDER_PROGRESS_WIDTH+FOLDER_OPEN_AMPLITUDE, FOLDER_2.y-FOLDER_OPEN_AMPLITUDE)
+        elseif(pickedFolder==3) then 
+            gfx.drawLine(FOLDER_3.x                      , FOLDER_3.y, FOLDER_3.x-FOLDER_OPEN_AMPLITUDE                      , FOLDER_3.y-FOLDER_OPEN_AMPLITUDE)
+            gfx.drawLine(FOLDER_3.x+FOLDER_PROGRESS_WIDTH, FOLDER_3.y, FOLDER_3.x+FOLDER_PROGRESS_WIDTH+FOLDER_OPEN_AMPLITUDE, FOLDER_3.y-FOLDER_OPEN_AMPLITUDE)
+        elseif(pickedFolder==4) then 
+            gfx.drawLine(FOLDER_4.x                      , FOLDER_3.y, FOLDER_4.x-FOLDER_OPEN_AMPLITUDE                      , FOLDER_4.y-FOLDER_OPEN_AMPLITUDE)
+            gfx.drawLine(FOLDER_4.x+FOLDER_PROGRESS_WIDTH, FOLDER_3.y, FOLDER_4.x+FOLDER_PROGRESS_WIDTH+FOLDER_OPEN_AMPLITUDE, FOLDER_4.y-FOLDER_OPEN_AMPLITUDE)
+        elseif(pickedFolder==5) then 
+            gfx.drawLine(FOLDER_5.x                      , FOLDER_5.y, FOLDER_5.x-FOLDER_OPEN_AMPLITUDE                      , FOLDER_5.y-FOLDER_OPEN_AMPLITUDE)
+            gfx.drawLine(FOLDER_5.x+FOLDER_PROGRESS_WIDTH, FOLDER_5.y, FOLDER_5.x+FOLDER_PROGRESS_WIDTH+FOLDER_OPEN_AMPLITUDE, FOLDER_5.y-FOLDER_OPEN_AMPLITUDE)
+        end
+        gfx.setLineWidth(1)
+    end
 end
 
 --draw screen borders
@@ -470,6 +515,8 @@ function playdate.update()
         if((state == GameState.CATCH or state == GameState.CATCHED) and crankScary > 1) then 
             drawBagNumber(offsetX, offsetY)
         end
+
+        drawOpenFolder()
 
         handleInput()
     end
