@@ -90,21 +90,29 @@ scaryLocation = nil
 crankStart = 0
 crankScary = 0
 pickedFolder = 1
+movePercentage = 0.0
+bagPosition = nil
+bagDestination = nil
 
 --pick folder to fill
 function pickFolder()
     pickedFolder = 1
+    bagDestination = PROGRESS_1_TEXT
     if(folder1Progress==100) then 
         pickedFolder=2
+        bagDestination = PROGRESS_2_TEXT
     end
     if(folder2Progress==100) then 
         pickedFolder=3
+        bagDestination = PROGRESS_3_TEXT
     end
     if(folder3Progress==100) then 
         pickedFolder=4
+        bagDestination = PROGRESS_4_TEXT
     end
     if(folder4Progress==100) then 
         pickedFolder=5
+        bagDestination = PROGRESS_5_TEXT
     end
 end
 
@@ -433,26 +441,29 @@ function handleInput()
         updateDisplayedArea()
     elseif(state == GameState.CATCH) then
         crankScary = crankScary + math.abs(playdate.getCrankChange())
+    elseif(state == GameState.CATCHED) then
+        local change = playdate.getCrankChange()
+        if(change > 0) then
+            movePercentage += math.abs(change/4)/100
+            movePercentage = math.min(1.0, movePercentage)
+            moveBag(movePercentage)
+        end 
     end
 end
 
-function drawBagNumber(oX,oY)
-    --playdate.graphics.setDrawOffset(oX, oY)
+function drawBagNumber(at)
     --border
     gfx.setColor(gfx.kColorWhite)
-    gfx.drawArc(scaryLocation.x,scaryLocation.y, SCARY_RADIUS+1, 0, crankScary)
+    gfx.drawArc(at.x,at.y, SCARY_RADIUS+1, 0, crankScary)
     --background
     gfx.setColor(gfx.kColorBlack)
-    gfx.fillCircleAtPoint(scaryLocation, SCARY_RADIUS)
-    print(scaryLocation.x .. "__" .. scaryLocation.y)
+    gfx.fillCircleAtPoint(at, SCARY_RADIUS)
     --numbers
     for i = 1, #scaryNumbers do
         gfx.setFont(GameAssets.LARGE_FONT)
         gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
         gfx.drawText(scaryNumbers[i].value, scaryNumbers[i].curX + PADDING*2, scaryNumbers[i].curY + HEADER_HEIGHT)
-       -- print(scaryNumbers[i].curX .. " | " .. scaryNumbers[i].curY)
     end
-    --playdate.graphics.setDrawOffset(0, 0)
 end
 
 --[[
@@ -485,7 +496,19 @@ end
 
 --return linear interpolation between two points
 function lerp(p1, p2, t)
-    return playdate.geometry.point.new(playdate.math.lerp(p1.x,p2.x),playdate.math.lerp(p1.y, p2.y),t)
+    return playdate.geometry.point.new(playdate.math.lerp(p1.x,p2.x, t),playdate.math.lerp(p1.y, p2.y, t))
+end
+
+--move bag
+function moveBag(t) 
+    local oldPos = bagPosition
+    bagPosition = lerp(bagPosition, bagDestination, movePercentage)
+    local deltaX = bagPosition.x - oldPos.x
+    local deltaY = bagPosition.y - oldPos.y
+    for i = 1, #scaryNumbers do
+        scaryNumbers[i].curX += deltaX
+        scaryNumbers[i].curY += deltaY
+    end
 end
 
 --startup call
@@ -517,14 +540,18 @@ function playdate.update()
             if(state ~= oldState) then
                 crankStart = playdate.getCrankPosition()
                 crankScary = 1
+                movePercentage = 0.0
+                bagPosition = scaryLocation
             end
         else
             --prevent move when scary are on screen
             state = GameState.SEARCH
         end
 
-        if((state == GameState.CATCH or state == GameState.CATCHED) and crankScary > 1) then 
-            drawBagNumber(offsetX, offsetY)
+        if(state == GameState.CATCH and crankScary > 1) then 
+            drawBagNumber(bagPosition)
+        elseif(state == GameState.CATCHED) then
+            drawBagNumber(bagPosition)
         end
 
         drawOpenFolder()
