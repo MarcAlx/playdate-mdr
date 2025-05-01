@@ -490,11 +490,14 @@ function handleInput()
         local newOy = offsetY
         if playdate.buttonIsPressed(playdate.kButtonUp) then
             newOy = offsetY + OFFSET_STEP
-        elseif playdate.buttonIsPressed(playdate.kButtonRight) then
+        end
+        if playdate.buttonIsPressed(playdate.kButtonRight) then
             newOx = offsetX - OFFSET_STEP
-        elseif playdate.buttonIsPressed(playdate.kButtonDown) then
+        end
+        if playdate.buttonIsPressed(playdate.kButtonDown) then
             newOy = offsetY - OFFSET_STEP
-        elseif playdate.buttonIsPressed(playdate.kButtonLeft) then
+        end
+        if playdate.buttonIsPressed(playdate.kButtonLeft) then
             newOx = offsetX + OFFSET_STEP
         end
 
