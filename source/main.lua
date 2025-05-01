@@ -454,6 +454,8 @@ function drawProgress()
     --progress
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(PROGRESS_BAR.x+1, PROGRESS_BAR.y+1, PROGRESS_BAR.width-2, PROGRESS_BAR.height-2)
+    gfx.setPattern({0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33})
+    gfx.fillRect(PROGRESS_BAR.x+(PROGRESS_BAR.width/2)+1, PROGRESS_BAR.y+1, (0.5*PROGRESS_BAR.width)-2, PROGRESS_BAR.height-2)
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(PROGRESS_BAR.x+1, PROGRESS_BAR.y+1, (p*PROGRESS_BAR.width)-2, PROGRESS_BAR.height-2)
     gfx.setImageDrawMode(gfx.kDrawModeNXOR)
