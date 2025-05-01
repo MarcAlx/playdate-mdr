@@ -2,6 +2,8 @@
 
 Macrodata Refinement terminal for play.date
 
+![](./screenshot/main.png)
+
 _The work is mysterious and important._
 
 @see https://severance.wiki/macrodata_refinement
