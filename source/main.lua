@@ -399,7 +399,7 @@ function drawCoord()
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(150, 222, 120, 10)
     gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
-    gfx.drawText("0x" .. string.upper(string.format("%x", offsetX)) .. " : " .. "0x" .. string.upper(string.format("%x", offsetY)), 150, 222)
+    gfx.drawText("0x" .. string.upper(string.format("%x", offsetX)) .. " : " .. "0x" .. string.upper(string.format("%x", offsetY)), 130, 222)
 end
 
 -- draw static ui shell
