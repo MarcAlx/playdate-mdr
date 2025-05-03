@@ -429,9 +429,9 @@ function drawShell()
     drawScreenCorner()
 end
 
--- render all numbers
+-- render all numbers on screen
 function updateAllNumbers()
-    --update visible numbers
+    --restrict to displayed area
     for i = displayedArea.x+1, displayedArea.x+1+displayedArea.width do
         for j = displayedArea.y+1, displayedArea.y+1+displayedArea.height do
             numbers[i][j]:update()
