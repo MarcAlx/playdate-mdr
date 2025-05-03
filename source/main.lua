@@ -33,8 +33,8 @@ GameState = {
 GameState = protect(GameState)
 
 --grid related
-WIDTH = 250
-HEIGHT = 250
+WIDTH = 100
+HEIGHT = 100
 NB_ON_SCREEN_WIDTH = 25
 NB_ON_SCREEN_HEIGHT= 9
 
