@@ -441,9 +441,11 @@ end
 
 -- render all numbers
 function updateNumbersInBag()
-    --update visible numbers
-    for i = 1, #scaryNumbers do
-        scaryNumbers[i]:update()
+    if(state == GameState.CATCH) then
+        --update visible numbers
+        for i = 1, #scaryNumbers do
+            scaryNumbers[i]:update()
+        end
     end
 end
 
@@ -515,7 +517,7 @@ function handleInput()
         crankScary = crankScary + math.abs(playdate.getCrankChange())
     elseif(state == GameState.CATCHED) then
         local change = playdate.getCrankChange()
-        if(change > 0) then
+        if(change ~= 0) then
             movePercentage += math.abs(change/4)/100
             movePercentage = math.min(1.0, movePercentage)
             moveBag(movePercentage)
