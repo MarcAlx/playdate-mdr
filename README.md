@@ -8,6 +8,10 @@ _The work is mysterious and important._
 
 @see https://severance.wiki/macrodata_refinement
 
+**Inspired from the TV show Severance (available on [Apple TV+](https://tv.apple.com/us/show/severance/umc.cmc.1srk2goyh2q2zdxcx605w8vtx)).**
+
+_This is made by a fan for the fans, with no commercial purpose._
+
 ## What is it?
 
 **Please, consider this as a concept (not game) session may be long to acheive 100% completion, it resets once 100% reached.**
